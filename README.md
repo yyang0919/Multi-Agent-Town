@@ -14,14 +14,27 @@
 ```text
 .
 ├─ src/
-│  └─ universal_llm/
+│  ├─ universal_llm/
+│  │  ├─ __init__.py
+│  │  ├─ client.py
+│  │  ├─ config.py
+│  │  ├─ factory.py
+│  │  └─ messages.py
+│  └─ universal_llm.egg-info/   # 执行 pip install -e . 后自动生成
 ├─ scripts/
+│  ├─ check_env.py
+│  ├─ run_openai_example.py
+│  └─ run_vllm_example.py
 ├─ examples/
+│  ├─ basic_chat.py
+│  └─ stream_chat.py
 ├─ tests/
+│  └─ test_config.py
 ├─ pyproject.toml
 ├─ requirements.txt
 ├─ README.md
 └─ README_langchain_vllm.md
+
 ```
 
 ---
