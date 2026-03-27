@@ -3,7 +3,7 @@ langchain-core>=0.3.0
 langchain-openai>=0.2.0
 python-dotenv>=1.0.0
 
-# ???????????????
+# Optional native-provider integrations
 # langchain-anthropic>=0.2.0
 # langchain-google-genai>=2.0.0
 # langchain-google-vertexai>=2.0.0

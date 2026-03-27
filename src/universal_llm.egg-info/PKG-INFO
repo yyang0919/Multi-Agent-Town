@@ -1,7 +1,18 @@
+Metadata-Version: 2.4
+Name: universal-llm
+Version: 0.1.0
+Summary: A simple universal LLM wrapper based on LangChain.
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: langchain>=0.3.0
+Requires-Dist: langchain-core>=0.3.0
+Requires-Dist: langchain-openai>=0.2.0
+Requires-Dist: python-dotenv>=1.0.0
+
 # 基于 LangChain 的通用 LLM 调用项目详细说明
 
-> 如果你只想快速了解项目，请先阅读根目录的 **README.md**。  
-> 本文档主要用于说明：**项目结构、安装方式、vLLM 部署流程、运行方法、代码设计与工作流程**。
+> 如果你只想快速了解项目，请先看根目录的 `README.md`。  
+> 本文档用于说明：**环境搭建、vLLM 部署、项目结构、工作流程、运行方法**。
 
 ---
 
@@ -12,30 +23,35 @@
 - 用统一接口调用不同供应商模型；
 - 支持 **LangChain 原生 provider**；
 - 支持 **OpenAI-compatible provider**；
-- 支持通过 **vLLM** 调用本地部署模型；
+- 支持通过 **vLLM** 调用本地模型；
 - 当前聚焦文本对话与流式输出，暂不接入 tool。
 
+这个项目适合作为：
+
+- 课程作业；
+- LangChain 封装练习；
+- 本地 vLLM + Python 接口联调示例；
+- 后续扩展 Agent / RAG / Tool 的基础工程。
 
 ---
 
 ## 2. 当前项目结构
 
-
+本项目已经改成标准 **src-layout** 结构，当前目录如下：
 
 ```text
 .
 ├─ src/
-│  ├─ universal_llm/
-│  │  ├─ __init__.py
-│  │  ├─ client.py
-│  │  ├─ config.py
-│  │  ├─ factory.py
-│  │  └─ messages.py
-│  └─ universal_llm.egg-info/   # 执行 pip install -e . 后自动生成
+│  └─ universal_llm/
+│     ├─ __init__.py
+│     ├─ config.py
+│     ├─ factory.py
+│     ├─ messages.py
+│     └─ client.py
 ├─ scripts/
-│  ├─ check_env.py
+│  ├─ run_vllm_example.py
 │  ├─ run_openai_example.py
-│  └─ run_vllm_example.py
+│  └─ check_env.py
 ├─ examples/
 │  ├─ basic_chat.py
 │  └─ stream_chat.py
@@ -52,38 +68,35 @@
 #### `src/universal_llm/`
 核心源码目录：
 
-- `config.py`：配置类、provider 注册信息、响应结构、异常类、LangChain 运行时加载
+- `config.py`：配置类、provider 注册信息、响应结构、异常类、LangChain 延迟加载
 - `factory.py`：根据配置创建底层 chat model
 - `messages.py`：消息构造、role 标准化、消息转换、文本提取
 - `client.py`：主类 `UniversalLLM`
 - `__init__.py`：统一导出接口
 
-#### `src/universal_llm.egg-info/`
-这是执行 `pip install -e .` 后自动生成的安装元数据目录，不是手写业务代码。
-
 #### `scripts/`
-用于直接运行的项目脚本：
+用于直接运行的脚本：
 
-- `run_vllm_example.py`：本地 vLLM 调用示例，演示如何连接本地 vLLM 服务、如何通过 UniversalLLM 调本地模型，适合验证本地部署是否成功
-- `run_openai_example.py`：OpenAI-compatible 云端示例，演示如何连接 DeepSeek 这类兼容 OpenAI API 的服务。
-- `check_env.py`：环境检查，检查环境变量是否设置、检查项目是否能正常导入，用来快速排查运行环境问题。
+- `run_vllm_example.py`：本地 vLLM 调用示例
+- `run_openai_example.py`：OpenAI-compatible 云端示例
+- `check_env.py`：环境检查
 
 #### `examples/`
-这是教学示例目录，代码更短、更适合展示：
+最小教学示例：
 
-- `basic_chat.py`：最简单的对话调用示例，展示最基础的 chat() 调用方式。
-- `stream_chat.py`：流式输出示例，展示 stream() 的用法。
+- `basic_chat.py`
+- `stream_chat.py`
 
 #### `tests/`
 测试目录：
 
-- `test_config.py`：配置测试脚本，测试 LLMConfig 的关键逻辑是否正确、测试 vLLM 默认配置是否正确、测试 native/openai-compatible 路由是否正确、测试非法配置是否能正确报错。
+- `test_config.py`
 
 ---
 
 ## 3. 当前支持的 provider
 
-为了更适合展示，当前只保留最有代表性的 provider。
+为了更适合作业展示，当前只保留最有代表性的 provider。
 
 ### 3.1 LangChain 原生 provider
 
@@ -125,13 +138,13 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-执行后即可在脚本中直接导入：
+执行后，就可以直接在任意脚本中使用：
 
 ```python
 from universal_llm import LLMConfig, UniversalLLM
 ```
 
-不需要再手动修改 `sys.path`。
+而不需要再手动修改 `sys.path`。
 
 ---
 
@@ -139,7 +152,7 @@ from universal_llm import LLMConfig, UniversalLLM
 
 本项目的完整流程是：
 
-**先部署 vLLM → 再用本项目调用本地模型**
+**先部署 vLLM → 再使用本项目调用本地模型**
 
 ---
 
@@ -175,7 +188,7 @@ docker build --progress=plain --build-arg max_jobs=4 -f .\docker\Dockerfile.cpu 
 命令说明：
 
 - `-f .\docker\Dockerfile.cpu`：使用 CPU 版 Dockerfile
-- `-t vllm-cpu`：镜像命名为 `vllm-cpu`
+- `-t vllm-cpu`：将镜像命名为 `vllm-cpu`
 - `--build-arg max_jobs=4`：设置构建并行数
 - `--shm-size=4g`：设置共享内存
 - `.`：当前目录作为构建上下文
@@ -190,7 +203,7 @@ docker images
 
 ### 5.4 登录 Hugging Face 并创建 Token
 
-vLLM 第一次启动并加载模型时，需要从 Hugging Face 下载模型，因此你需要：
+vLLM 第一次启动并加载模型时，需要从 Hugging Face 下载模型，所以你需要：
 
 1. 登录 Hugging Face  
 2. 创建 Access Token  
@@ -219,7 +232,7 @@ docker run -it --rm -p 8000:8000 -v "${env:USERPROFILE}\.cache\huggingface:/root
 - 启动 vLLM 服务
 - 将容器 8000 端口映射到本机 8000
 - 自动下载并加载 `Qwen/Qwen2.5-1.5B-Instruct`
-- 使用本机 Hugging Face 缓存目录
+- 使用本机 Hugging Face 缓存
 
 ---
 
@@ -231,9 +244,9 @@ docker run -it --rm -p 8000:8000 -v "${env:USERPROFILE}\.cache\huggingface:/root
 curl http://127.0.0.1:8000/v1/models
 ```
 
-如果返回模型信息，说明本地服务已启动成功。
+如果返回模型信息，说明服务已启动成功。
 
-本项目访问的本地接口地址就是：
+本项目后续连接的地址就是：
 
 ```text
 http://127.0.0.1:8000/v1
@@ -258,7 +271,7 @@ http://127.0.0.1:8000/v1
 - temperature
 - max_tokens
 
-### 第三步：自动路由到底层实现
+### 第三步：自动路由
 
 项目内部根据配置自动选择：
 
@@ -399,8 +412,9 @@ for token in client.stream("请分三点介绍 LangChain"):
 1. 统一接口  
 2. 同时支持本地与云端  
 3. 同时支持 native provider 与 OpenAI-compatible  
-4. 采用标准 `src-layout` 工程结构  
-5. 易于后续扩展
+4. 标准 `src-layout` 工程结构  
+5. 适合课程作业展示  
+6. 易于后续扩展
 
 ---
 
@@ -416,13 +430,40 @@ for token in client.stream("请分三点介绍 LangChain"):
 
 ---
 
+## 12. 课程汇报建议顺序
 
-## 12. 参考资料
+如果你要做课程汇报，建议按下面顺序讲：
+
+1. 项目目标  
+2. 标准 `src-layout` 工程结构  
+3. vLLM 部署流程  
+4. LangChain 统一封装设计  
+5. 本地模型调用演示  
+6. 云端兼容接口调用演示  
+7. 总结与扩展方向
+
+---
+
+## 13. 参考资料
 
 - vLLM GitHub：https://github.com/vllm-project/vllm
 - vLLM Docker 部署文档：https://docs.vllm.ai/en/latest/deployment/docker/
 - Hugging Face：https://huggingface.co/
 
+---
 
+## 14. 总结
 
+本项目现在已经是一个标准的 Python `src-layout` 工程：
 
+- 核心代码位于 `src/universal_llm/`
+- 通过 `pip install -e .` 安装使用
+- 支持本地 vLLM 与云端 OpenAI-compatible 服务
+- 使用 LangChain 统一封装模型调用
+
+对于课程作业来说，这样的结构兼顾了：
+
+- 清晰性
+- 完整性
+- 可运行性
+- 可扩展性

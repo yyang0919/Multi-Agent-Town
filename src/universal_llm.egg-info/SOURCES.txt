@@ -1,0 +1,14 @@
+README.md
+README_langchain_vllm.md
+pyproject.toml
+src/universal_llm/__init__.py
+src/universal_llm/client.py
+src/universal_llm/config.py
+src/universal_llm/factory.py
+src/universal_llm/messages.py
+src/universal_llm.egg-info/PKG-INFO
+src/universal_llm.egg-info/SOURCES.txt
+src/universal_llm.egg-info/dependency_links.txt
+src/universal_llm.egg-info/requires.txt
+src/universal_llm.egg-info/top_level.txt
+tests/test_config.py
